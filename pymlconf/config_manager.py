@@ -2,7 +2,7 @@
 import os
 
 from pymlconf.config_nodes import ConfigDict
-from pymlconf.yaml_helper import load_yaml
+from pymlconf.yaml_helper import load_yaml, save_yaml
 from pymlconf.compat import basestring
 from pymlconf.errors import ConfigFileNotFoundError
 import logging
@@ -39,7 +39,8 @@ class ConfigManager(ConfigDict):
     default_extension = ".conf"
 
     def __init__(self, init_value=None, dirs=None, files=None, filename_as_namespace=True,
-                 extension='.conf', root_file_name='root', missing_file_behavior = WARNING):
+                 extension='.conf', root_file_name='root', missing_file_behavior = WARNING,
+                 encryption_key=None):
         """
         :param init_value: Initial configuration value that you can pass it before reading the files and directories.can be 'yaml string' or python dictionary.
         :type init_value: str or dict
@@ -61,11 +62,15 @@ class ConfigManager(ConfigDict):
 
         :param missing_file_behavior: What should do when a file was not found, set to 0 (zero) to ignore. default to 2:warning
         :type missing_file_behavior: integer 0:ignore, 1:throw error, 2:warning
+
+        :param encryption_key: a key to encrypt/decrypt the configuration file during load and save, default None: no encryption.
+        :type encryption_key: str
         """
         super(ConfigManager, self).__init__(data=init_value)
         self.default_extension = extension
         self.root_file_name = root_file_name
         self.missing_file_behavior = missing_file_behavior
+        self.encryption_key = encryption_key
         if dirs:
             self.load_dirs(dirs, filename_as_namespace=filename_as_namespace)
 
@@ -140,3 +145,10 @@ class ConfigManager(ConfigDict):
     # Supporting Deprecated methods
     loadfiles = load_files
     loaddirs = load_dirs
+
+    def save(self, output_filename, plain=False):
+        plain = plain or self.encryption_key is None
+        if plain:
+            save_yaml(output_filename, self)
+        else:
+            save_yaml(output_filename, self, self.encryption_key)

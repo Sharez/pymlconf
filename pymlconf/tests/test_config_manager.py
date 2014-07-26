@@ -3,7 +3,7 @@ import os
 import unittest
 from pymlconf import ConfigDict, ConfigManager
 from pymlconf.config_manager import ERROR, IGNORE
-from pymlconf.errors import ConfigFileNotFoundError
+from pymlconf.errors import ConfigFileNotFoundError, ConfigFileEncryptedError
 
 
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -135,6 +135,28 @@ class TestConfigManager(unittest.TestCase):
         self.assertEqual(cm.testpath, './')
          
         #self.assertEqual(cm.selenium.xvfb.options.server-args, '-screen 0 1024x768x24')
+
+
+    def test_cryptography(self):
+        dirs = [conf_dir]
+        cm = ConfigManager(init_value=self.builtin_config, dirs=dirs,extension=".yaml",encryption_key='baghali')
+
+        self.assertEqual(cm.run.baseurl, 'http://localhost:9090')
+        self.assertEqual(cm.run.skipurlcheck, True)
+        self.assertEqual(cm.type, 'selenium')
+        self.assertEqual(cm.testpath, './')
+
+        out_filename = os.path.join(this_dir, 'files', 'encrypted_file.pconf')
+        out_filename_plain = os.path.join(this_dir, 'files', 'plain_file.yaml')
+        cm.save(out_filename)
+        cm.save(out_filename_plain, plain=True)
+
+        self.assertRaises(ConfigFileEncryptedError, ConfigManager, files=out_filename)
+        cm = ConfigManager(files=out_filename_plain)
+        self.assertEqual(cm.run.baseurl, 'http://localhost:9090')
+        self.assertEqual(cm.run.skipurlcheck, True)
+        self.assertEqual(cm.type, 'selenium')
+        self.assertEqual(cm.testpath, './')
 
 
 

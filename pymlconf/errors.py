@@ -15,3 +15,7 @@ class ConfigurationMergeError(ConfigurationError, ValueError):
 class ConfigFileNotFoundError(ConfigurationError):
     def __init__(self, filename):
         ConfigurationError.__init__(self,'Config File not found: "%s"' % filename)
+
+class ConfigFileEncryptedError(ConfigurationError):
+    def __init__(self, filename):
+        ConfigurationError.__init__(self,'Encryption key required to decrypt the file: %s' % filename)
