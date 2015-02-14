@@ -37,3 +37,10 @@ try:
     from StringIO import StringIO
 except ImportError:
     from io import StringIO
+
+
+# PyYAML compatibilities
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper, CSafeDumper as SafeDumper
+except ImportError:
+    from yaml import Loader, SafeDumper, Dumper

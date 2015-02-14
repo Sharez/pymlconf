@@ -1,13 +1,15 @@
-
+# -*- coding: utf-8 -*-
 import os
 import unittest
-from pymlconf import ConfigDict, ConfigManager
-from pymlconf.config_manager import ERROR, IGNORE
-from pymlconf.errors import ConfigFileNotFoundError, ConfigFileEncryptedError
+import logging
+from pymlconf1 import ConfigDict, ConfigManager, ConfigFileMissingBehavior
+from pymlconf1.errors import ConfigFileNotFoundError, EncryptionKeyMissingError
+__author__ = 'vahid'
 
-
+logging.basicConfig()
 this_dir = os.path.abspath(os.path.dirname(__file__))
 conf_dir = os.path.join(this_dir, 'conf')
+
 
 class TestConfigManager(unittest.TestCase):
 
@@ -65,7 +67,7 @@ class TestConfigManager(unittest.TestCase):
         
         import logging
         import sys
-        from pymlconf.compat import StringIO
+        from pymlconf1.compat import StringIO
         logger = logging.getLogger('pymlconf')
         logger.level = logging.DEBUG
         saved_stdout = sys.stdout
@@ -77,7 +79,7 @@ class TestConfigManager(unittest.TestCase):
         try:
             # Testing ignore behavior
             ConfigManager(init_value=self.builtin_config, dirs=[conf_dir], files=files,
-                          missing_file_behavior=IGNORE)
+                          missing_file_behavior=ConfigFileMissingBehavior.IGNORE)
             output = sys.stdout.getvalue().strip()
             self.assertNotRegexpMatches(output, "^File not found: ['\"]?(?:/[^/]+)*['\"]?$")
 
@@ -91,7 +93,7 @@ class TestConfigManager(unittest.TestCase):
                               init_value=self.builtin_config,
                               dirs=[conf_dir],
                               files=files,
-                              missing_file_behavior=ERROR)
+                              missing_file_behavior=ConfigFileMissingBehavior.ERROR)
 
         finally:
             logger.removeHandler(stream_handler)
@@ -126,15 +128,13 @@ class TestConfigManager(unittest.TestCase):
 
     def test_new_extension(self):
         dirs = [conf_dir]
-        cm = ConfigManager(init_value=self.builtin_config, dirs=dirs,extension=".yaml")
+        cm = ConfigManager(init_value=self.builtin_config, dirs=dirs, extension=".yaml")
  
         # root.conf
         self.assertEqual(cm.run.baseurl, 'http://localhost:9090')
         self.assertEqual(cm.run.skipurlcheck, True)
         self.assertEqual(cm.type, 'selenium')
         self.assertEqual(cm.testpath, './')
-         
-        #self.assertEqual(cm.selenium.xvfb.options.server-args, '-screen 0 1024x768x24')
 
 
     def test_cryptography(self):
@@ -146,12 +146,14 @@ class TestConfigManager(unittest.TestCase):
         self.assertEqual(cm.type, 'selenium')
         self.assertEqual(cm.testpath, './')
 
-        out_filename = os.path.join(this_dir, 'files', 'encrypted_file.pconf')
+        out_filename_encrypted = os.path.join(this_dir, 'files', 'encrypted_file.pconf')
         out_filename_plain = os.path.join(this_dir, 'files', 'plain_file.yaml')
-        cm.save(out_filename)
+        cm.save(out_filename_encrypted)
         cm.save(out_filename_plain, plain=True)
+        self.assertTrue(os.path.isfile(out_filename_encrypted))
+        self.assertTrue(os.path.isfile(out_filename_plain))
 
-        self.assertRaises(ConfigFileEncryptedError, ConfigManager, files=out_filename)
+        self.assertRaises(ConfigFileMissingBehavior, ConfigManager, files=out_filename_encrypted)
         cm = ConfigManager(files=out_filename_plain)
         self.assertEqual(cm.run.baseurl, 'http://localhost:9090')
         self.assertEqual(cm.run.skipurlcheck, True)

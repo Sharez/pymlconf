@@ -5,7 +5,7 @@ Created on Nov 17, 2013
 @author: vahid
 """
 import unittest
-from pymlconf import ConfigManager
+from pymlconf1 import ConfigManager
 
 
 class MyWriter(object):

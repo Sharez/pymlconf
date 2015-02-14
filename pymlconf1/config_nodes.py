@@ -1,8 +1,8 @@
                                                                                                                                                  
 import abc
-from pymlconf.errors import ConfigKeyError, ConfigurationMergeError
-from pymlconf.compat import OrderedDict, isiterable
-from pymlconf.yaml_helper import load_string
+from pymlconf1.errors import ConfigKeyError, ConfigurationMergeError
+from pymlconf1.compat import OrderedDict, isiterable
+from pymlconf1.yaml_helper import load_yaml_string
 import copy
 
 
@@ -80,7 +80,7 @@ class Mergable(object):
         """
         for data in args:
             if isinstance(data, str):
-                to_merge = load_string(data)
+                to_merge = load_yaml_string(data)
                 if not to_merge:
                     continue
             else:
@@ -91,7 +91,7 @@ class Mergable(object):
             else:
                 raise ConfigurationMergeError('Cannot merge myself:%s with %s. data: %s' % (type(self), type(data), data))
 
-    def _ensure_namespaces(self, *namespaces):
+    def p_ensure_namespaces(self, *namespaces):
         if namespaces:
             ns = namespaces[0]
             if ns not in self:
@@ -147,13 +147,11 @@ class ConfigDict(OrderedDict, Mergable):
         return cls()
 
 
-class ConfigNamespace(ConfigDict, Mergable):
+class ConfigNamespace(ConfigDict):
     """
     Configuration node that represents the configuration namespace node.
     """
-    def __init__(self, data=None):
-        ConfigDict.__init__(self)
-        Mergable.__init__(self, data=data)
+    pass
 
 
 class ConfigList(list, Mergable):

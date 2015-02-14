@@ -1,20 +1,18 @@
-
+# -*- coding: utf-8 -*-
 import os
-
-from pymlconf.config_nodes import ConfigDict
-from pymlconf.yaml_helper import load_yaml, save_yaml
-from pymlconf.compat import basestring
-from pymlconf.errors import ConfigFileNotFoundError
+from pymlconf1.config_nodes import ConfigDict
+from pymlconf1.yaml_helper import load_yaml_file, save_yaml
+from pymlconf1.compat import basestring
+from pymlconf1.errors import ConfigFileNotFoundError
 import logging
+__author__ = 'vahid'
 
 logger = logging.getLogger('pymlconf')
 
-IGNORE = 0
-ERROR = 1
-WARNING = 2
-missing_file_behaviors = [IGNORE,
-                          ERROR,
-                          WARNING]
+class ConfigFileMissingBehavior(object):
+  IGNORE = 0
+  ERROR = 1
+  WARNING = 2
 
 
 class ConfigManager(ConfigDict):
@@ -39,7 +37,7 @@ class ConfigManager(ConfigDict):
     default_extension = ".conf"
 
     def __init__(self, init_value=None, dirs=None, files=None, filename_as_namespace=True,
-                 extension='.conf', root_file_name='root', missing_file_behavior = WARNING,
+                 extension='.conf', root_file_name='root', missing_file_behavior = ConfigFileMissingBehavior.WARNING,
                  encryption_key=None):
         """
         :param init_value: Initial configuration value that you can pass it before reading the files and directories.can be 'yaml string' or python dictionary.
@@ -91,9 +89,9 @@ class ConfigManager(ConfigDict):
         files = [f.strip() for f in files.split(';')] if isinstance( files,basestring) else files
         for f in files:
             if not os.path.exists(f):
-                if self.missing_file_behavior == ERROR:
+                if self.missing_file_behavior == ConfigFileMissingBehavior.ERROR:
                     raise ConfigFileNotFoundError(f)
-                elif self.missing_file_behavior == WARNING:
+                elif self.missing_file_behavior == ConfigFileMissingBehavior.WARNING:
                     logger.warning('File not found: %s' % f)
                 continue
 
@@ -107,7 +105,7 @@ class ConfigManager(ConfigDict):
             else:
                 node = self
 
-            loaded_yaml = load_yaml(f)
+            loaded_yaml = load_yaml_file(f)
             if loaded_yaml:
                 node.merge(loaded_yaml)
 

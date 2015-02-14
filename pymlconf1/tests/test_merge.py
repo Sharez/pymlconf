@@ -6,10 +6,10 @@ Created on Nov 17, 2013
 """
 import unittest
 from os import path
-from pymlconf.errors import ConfigurationMergeError
+from pymlconf1.errors import ConfigurationMergeError
 thisdir = path.join(path.dirname(__file__))
                     
-from pymlconf import ConfigManager
+from pymlconf1 import ConfigManager
 
 class TestMerge(unittest.TestCase):
 
